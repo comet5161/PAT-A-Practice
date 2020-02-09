@@ -1,0 +1,65 @@
+#1089.Insert-or-Merge-(25point(s))
+#include <iostream>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+void Print(vector<int> & v)
+{
+    for(int i = 0; i < v.size(); i++)
+        printf("%d%c", v[i], i == v.size()-1 ? '\n' : ' ');
+}
+
+void Merge(vector<int>& v, int step)
+{
+    vector<int> t = v;
+    int n = v.size();
+    for(int i = 0; i+step < n; i += step*2)
+    {
+        if(i+step*2 < n)
+            merge(t.begin()+i, t.begin()+i+step, t.begin()+i+step, t.begin()+i+step*2, v.begin()+i);
+        else
+            merge(t.begin()+i, t.begin()+i+step, t.begin()+i+step, t.end(), v.begin()+i);
+    }
+}
+
+bool IsMergeSort(vector<int> v0, vector<int>& v1)
+{
+    for(int step = 1; step < v0.size(); step *= 2)
+    {
+        Merge(v0, step);
+        if(v0 == v1)
+        {
+            Merge(v1, step*2);
+            return true;
+        }
+    }
+    return false;
+}
+
+int main()
+{
+    int n;
+    cin >> n;
+    vector<int> v0(n), v1(n);
+    for(int i = 0; i < n; i++)
+        cin >> v0[i];
+    for(int i = 0; i < n; i++)
+        cin >> v1[i];
+    if(IsMergeSort(v0, v1))
+    {
+        cout << "Merge Sort" << endl;
+        Print(v1);
+    }
+    else
+    {
+        int pos = 0;
+        while(++pos < v1.size() && v1[pos] >= v1[pos-1]) ;
+        if(pos < v1.size())
+            sort(v1.begin(), v1.begin()+pos+1);
+        cout << "Insertion Sort" << endl;
+        Print(v1);
+    }
+    return 0;
+}
