@@ -1,5 +1,5 @@
 // 1114 Family Property (25point(s))
-// 考点：遍历图森林
+// 考点：建立邻接表、遍历图
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -7,8 +7,7 @@
 #include <string>
 #include <stdio.h>
 #include <set>
-
-#define MAX_SIZE 10000
+#include <map>
 
 using namespace std;
 
@@ -17,34 +16,38 @@ public:
     int id;
     set<int> family; //直系亲属
     int estate, area;
-    int familySize;
-    double avgSets, avgArea;
     bool visited;
-    Person(){
-        id = -1;
-        familySize = 0;
-        visited = false;
+    Person():id(-1), visited(false){}
+};
+
+class Family{
+public:
+    int min_id;
+    double avgSets, avgArea;
+    int familySize;
+    Family(){
         avgSets = 0.0;
         avgArea = 0.0;
+        familySize = 0;
     }
-    friend bool operator < (const Person& p1, const Person& p2){
+    friend bool operator < (const Family& p1, const Family& p2){
         if(p1.avgArea != p2.avgArea)
             return p1.avgArea < p2.avgArea;
-        return p1.id > p2.id;
+        return p1.min_id > p2.min_id;
     }
 };
 
-vector<Person> vFamilies(MAX_SIZE);
+map<int, Person> mPersons;
 
-void Visit(Person& p, Person& root){
-    p.visited = true;
-    root.id = min(root.id, p.id);
-    root.familySize++;
-    root.avgSets += p.estate;
-    root.avgArea += p.area;
-    for(auto iter : p.family){
-        if( vFamilies[iter].visited == false)
-            Visit(vFamilies[iter], root);
+void Visit(Person& person, Family& family){
+    person.visited = true;
+    family.min_id = min(family.min_id, person.id);
+    family.familySize++;
+    family.avgSets += person.estate;
+    family.avgArea += person.area;
+    for(auto iter : person.family){
+        if( mPersons[iter].visited == false)
+            Visit(mPersons[iter], family);
     }
 }
 
@@ -54,47 +57,47 @@ int main()
     int id, father, mother, k, estate, area;
     cin >> n;
     
+    //建立邻接表
     for(int i = 0; i < n; i++){
         cin >> id;
-        Person& p = vFamilies[id];
-        p.id = id;
+        Person& person = mPersons[id];
+        person.id = id;
         cin >> father >> mother >> k;
         if(father >= 0){
-            vFamilies[father].id = father;
-            vFamilies[father].family.insert(id);
-            p.family.insert(father);
+            mPersons[father].id = father;
+            mPersons[father].family.insert(id);
+            person.family.insert(father);
         }
         if(mother >= 0){
-            vFamilies[mother].id = mother;
-            vFamilies[mother].family.insert(id);
-            p.family.insert(mother);
+            mPersons[mother].id = mother;
+            mPersons[mother].family.insert(id);
+            person.family.insert(mother);
         }
         for(int j = 0; j < k; j++){
             cin >> id;
-            p.family.insert(id);
-            vFamilies[id].id = id;
-            vFamilies[id].family.insert(p.id);
+            person.family.insert(id);
+            mPersons[id].id = id;
+            mPersons[id].family.insert(person.id);
         }
-        cin >> p.estate >> p.area;
+        cin >> person.estate >> person.area;
     }
-    vector<Person> res;
-    for(auto& iter:vFamilies){
-        if(iter.id >= 0 && iter.visited == false){
-            Person p;
-            p.id = iter.id;
-            Visit(iter, p);
-            p.avgSets /= p.familySize;
-            p.avgArea /= p.familySize;
-            res.push_back(p);
+    vector<Family> res;
+    for(auto& iter:mPersons){
+        auto& person = iter.second;
+        if(person.id >= 0 && person.visited == false){
+            Family family;
+            family.min_id = person.id;
+            Visit(person, family);
+            family.avgSets /= family.familySize;
+            family.avgArea /= family.familySize;
+            res.push_back(family);
         }
     }
     sort(res.begin(), res.end());
     cout << res.size() << endl;
     for(int i = res.size()-1; i >= 0; i--){
-        Person& p = res[i];
-        printf("%04d %d %.3f %.3f\n", p.id, p.familySize, p.avgSets, p.avgArea);
+        Family& person = res[i];
+        printf("%04d %d %.3f %.3f\n", person.min_id, person.familySize, person.avgSets, person.avgArea);
     }
-
-
     return 0;
 }
