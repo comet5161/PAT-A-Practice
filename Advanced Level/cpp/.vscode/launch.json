@@ -6,15 +6,12 @@
     "configurations": [
         {
             "name": "(lldb) 启动",
-            "type": "cppdbg",
+            "type": "lldb",
             "request": "launch",
             "program": "${fileDirname}/debug/${fileBasenameNoExtension}",
             "args": [],
-            "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "lldb"
+            "preLaunchTask": "g++ build active file"
         },
         {
             "name": "g++ - 生成和调试活动文件",
